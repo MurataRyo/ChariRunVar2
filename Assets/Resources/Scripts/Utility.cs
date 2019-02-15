@@ -4,23 +4,23 @@ using UnityEngine;
 
 public class Utility : MonoBehaviour
 {
-    
+    public static ButtonTask GetButton()
+    {
+        return GameObject.FindGameObjectWithTag(GetTag.Task).GetComponent<ButtonTask>();
+    }
 }
 
 public struct GetTag
 {
+    public const string Task = "TaskManager";
     public const string Block = "Block";
 }
 
-public struct Button
+public struct GetPath
 {
-    public static bool JumpButton()
-    {
-        return Input.GetKeyDown(KeyCode.Space);
-    }
+    public const string Prefab = "Prefab";
+    public const string MapPrefab = Prefab + "/MapPrefab";
 }
-
-
 
 #region Interface
 

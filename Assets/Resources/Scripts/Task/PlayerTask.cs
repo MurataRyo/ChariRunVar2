@@ -5,30 +5,40 @@ using UnityEngine;
 public class PlayerTask : MonoBehaviour, IGravity
 {
     //バランス調整用
-    private const float GRAVITY_SIZE = -9.81f;  //重力加速度
-    private const float SPEED = 3f;             //スピード
-    private const float JUMP_POWER = 5f;        //ジャンプ力
+    private const float GRAVITY_SIZE = -9.81f;      //重力加速度
+    private const float SPEED = 3f;                 //スピード
+    private const float JUMP_POWER = 7f;            //ジャンプ力
+    private const float END_JUMP_POWER_MAX = 4f;    //終了時のジャンプ力の最大
+                                                    
+    private const float JUMP_INTERVAL = 0.3f;       //ジャンプ直後には設置判定を行わないための時間
+    private float jumpTimer = 0f;                   //↑の計測用
+                                                    
+    private float gravity = 0f;                     //受けている重力
+    private bool isGround = false;                  //設置しているかどうか
 
-    private const float JUMP_INTERVAL = 0.3f;   //ジャンプ直後には設置判定を行わないための時間
-    private float jumpTimer = 0f;               //↑の計測用
+    public int skyJumpNum;
+    public int skyJumpNumMax = 5;
 
-    private float gravity = 0f;                 //受けている重力
-    private bool isGround = false;              //設置しているかどうか
+    private const float GROUND_RAY_RANGE = 0.05f;
 
     //色々取得用
     private Rigidbody2D rBody;
     private BoxCollider2D boxCol;
+    private ButtonTask buttonTask;
 
     // Start is called before the first frame update
     private void Start()
     {
+        skyJumpNum = 0;
         rBody = GetComponent<Rigidbody2D>();
         boxCol = GetComponent<BoxCollider2D>();
+        buttonTask = Utility.GetButton();
     }
 
     // Update is called once per frame
     private void Update()
     {
+
         isGround = Groundif();
         GravityChange();
 
@@ -37,7 +47,7 @@ public class PlayerTask : MonoBehaviour, IGravity
             jumpTimer -= Time.deltaTime;
         }
 
-        if (Button.JumpButton())
+        if (buttonTask.ButtonDownIf(ButtonTask.Name.Jump))
         {
             JumpAction();
         }
@@ -48,21 +58,50 @@ public class PlayerTask : MonoBehaviour, IGravity
     //設置判定※Rayでとっている
     private bool Groundif()
     {
+        //上に飛んでいるかジャンプ直後なら必ず空中判定
+        if (Gravity() > 0f || jumpTimer > 0)
+            return false;
+
         Vector2 castSize = new Vector2(boxCol.size.x, 0.01f) / 2;
-        foreach (RaycastHit2D hit2D in Physics2D.BoxCastAll(transform.position, castSize, 0f, Vector2.down,0.01f))
+        float rayRange = rBody.velocity.y * Time.fixedDeltaTime > GROUND_RAY_RANGE ? rBody.velocity.y * Time.fixedDeltaTime : GROUND_RAY_RANGE;
+        foreach (RaycastHit2D hit2D in Physics2D.BoxCastAll(transform.position, castSize, 0f, Vector2.down, rayRange))
         {
             if (hit2D.collider.gameObject.tag == GetTag.Block)
             {
+                if (!IsGround())
+                    SkyToGround(hit2D);
+
                 return true;
             }
         }
         return false;
     }
 
-    //Jump可能かどうか
+    //空中から地上にいった時
+    private void SkyToGround(RaycastHit2D hit)
+    {
+        JumpReset();
+        //当たった場所の少し上からレイを飛ばして字面の一番上に行くようにする
+        //                                                                          1は1ブロックの最大が1mだから
+        foreach (RaycastHit2D hit2D in Physics2D.RaycastAll(hit.point + new Vector2(0f,1f),Vector2.down,1f))
+        {
+            if(hit.collider == hit2D.collider)
+            {
+                transform.position = new Vector2(transform.position.x, hit2D.point.y);
+                return;
+            }
+        }
+    }
+
+    //ジャンプ回数リセット
+    private void JumpReset()
+    {
+        skyJumpNum = 0;
+    }
+    
     private bool jumpIf()
     {
-        if (!IsGround())
+        if (!IsGround() && skyJumpNum >= skyJumpNumMax)
             return false;
 
         return true;
@@ -73,8 +112,19 @@ public class PlayerTask : MonoBehaviour, IGravity
         if (!jumpIf())
             return;
 
+        if(!IsGround())
+        {
+            SkyJump();
+        }
+
         jumpTimer = JUMP_INTERVAL;
         gravity = JUMP_POWER;
+    }
+
+    //空中ジャンプ
+    private void SkyJump()
+    {
+        skyJumpNum++;
     }
 
     #region インターフェイスの実装
@@ -95,6 +145,9 @@ public class PlayerTask : MonoBehaviour, IGravity
     {
         //設置判定ではないときかジャンプ直後だと重力を受ける
         gravity = IsGround() && jumpTimer <= 0 ? 0f : gravity + GRAVITY_SIZE * Time.deltaTime;
+
+        if (buttonTask.ButtonUpIf(ButtonTask.Name.Jump) && Gravity() > END_JUMP_POWER_MAX)
+            gravity = END_JUMP_POWER_MAX;
     }
 
     public bool IsGround()
