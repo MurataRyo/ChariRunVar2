@@ -14,6 +14,7 @@ public class ButtonTask : MonoBehaviour
     public enum Name
     {
         Jump,
+        Attack,
     }
 
     #region ボタン判定
@@ -83,6 +84,10 @@ public class ButtonTask : MonoBehaviour
         {
             case Name.Jump:
                 keyCode.Add(KeyCode.Space);
+                break;
+
+            case Name.Attack:
+                keyCode.Add(KeyCode.Return);
                 break;
         }
 

@@ -131,7 +131,7 @@ public class PrefabMap
 
     private int TopNum(int[][] mapData, int num)
     {
-        //列のにブロックがあるか調べる
+        //列にブロックがあるか調べる
         for (int i = 0; i < mapData.Length; i++)
         {
             if (mapData[i][num] == (int)MapTask.MapId.Block)

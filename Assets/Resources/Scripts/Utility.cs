@@ -14,12 +14,20 @@ public struct GetTag
 {
     public const string Task = "TaskManager";
     public const string Block = "Block";
+    public const string Sword = "Sword";
+    public const string Player = "Player";
 }
 
 public struct GetPath
 {
     public const string Prefab = "Prefab";
     public const string MapPrefab = Prefab + "/MapPrefab";
+
+    public const string GamePrefab = Prefab + "/GamePrefab";
+
+    public const string Txt = "Txt";
+    public const string StageTxt =  Txt + "/Stage";
+    public const string MainStage =  StageTxt + "/MainStage";
 }
 
 #region Interface
