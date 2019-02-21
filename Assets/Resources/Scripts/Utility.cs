@@ -8,6 +8,11 @@ public class Utility : MonoBehaviour
     {
         return GameObject.FindGameObjectWithTag(GetTag.Task).GetComponent<ButtonTask>();
     }
+
+    public static CameraTask GetCamera()
+    {
+        return GameObject.FindGameObjectWithTag(GetTag.Task).GetComponent<CameraTask>();
+    }
 }
 
 public struct GetTag

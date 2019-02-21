@@ -11,7 +11,6 @@ public class PlayerTask : MonoBehaviour, IGravity
 
     //バランス調整用
     private const float GRAVITY_SIZE = -9.81f;      //重力加速度
-    private const float SPEED = 3f;                 //スピード
     private const float JUMP_POWER = 7f;            //ジャンプ力
     private const float END_JUMP_POWER_MAX = 4f;    //終了時のジャンプ力の最大
 
@@ -26,10 +25,13 @@ public class PlayerTask : MonoBehaviour, IGravity
 
     private const float GROUND_RAY_RANGE = 0.05f;
 
+    private float highSpeedRange = 5f;
+
     //色々取得用
     private Rigidbody2D rBody;
     private BoxCollider2D boxCol;
     private ButtonTask buttonTask;
+    private CameraTask cameraTask;
 
     // Start is called before the first frame update
     private void Start()
@@ -38,6 +40,7 @@ public class PlayerTask : MonoBehaviour, IGravity
         rBody = GetComponent<Rigidbody2D>();
         boxCol = GetComponent<BoxCollider2D>();
         buttonTask = Utility.GetButton();
+        cameraTask = Utility.GetCamera();
         swordPrefab = Resources.Load<GameObject>(GetPath.GamePrefab + "/Sword");
         jumpEffect = Resources.Load<GameObject>(GetPath.GamePrefab + "/JumpEffect");
     }
@@ -55,7 +58,7 @@ public class PlayerTask : MonoBehaviour, IGravity
         }
         JumpAction();
 
-        rBody.velocity = new Vector2(SPEED, Gravity());
+        rBody.velocity = new Vector2(SPEED(), Gravity());
     }
 
     #region 剣関係
@@ -83,6 +86,18 @@ public class PlayerTask : MonoBehaviour, IGravity
     #endregion
 
     #region 動き関係
+
+    private float SPEED()
+    {
+        return cameraTask.cameraSpeed * (HighSpeedFlag() ? 1.1f:1f);
+    }
+
+    //プレイヤーの速度が速いかどうか
+    private bool HighSpeedFlag()
+    {
+        return cameraTask.cameraObject.transform.position.x - cameraTask.whideSize + highSpeedRange > transform.position.x;
+    }
+
     //設置判定※Rayでとっている
     private bool Groundif()
     {

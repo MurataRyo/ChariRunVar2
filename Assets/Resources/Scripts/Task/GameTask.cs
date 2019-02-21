@@ -38,7 +38,7 @@ public class GameTask : MonoBehaviour
 
     private void MapDelete()
     {
-        if(CameraXPos() - cameraTask.whideSize / 2 > MinPrefab().parent.transform.position.x + MaxPrefab().range)
+        if(CameraXPos() - cameraTask.whideSize / 2 > MinPrefab().parent.transform.position.x + MinPrefab().range)
         {
             Destroy(MinPrefab().parent.gameObject);
             mapTask.prefabMaps.RemoveAt(0);
